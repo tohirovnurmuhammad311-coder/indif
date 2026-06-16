@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MIQ Savollari">
+<meta name="theme-color" content="#2c1810">
+<title>Mahsulotlarni identifikasiyalash va qalbakilashtirish — Imtihon Savollari</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --card: #fffdf8;
+    --accent: #8b4513;
+    --accent2: #c07830;
+    --text: #2c1810;
+    --muted: #8a7060;
+    --border: #d4c4a8;
+    --tag-bg: #f0e6d0;
+    --answer-bg: #fef9f0;
+    --answer-border: #e8d4a0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Source Serif 4', Georgia, serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    -webkit-tap-highlight-color: transparent;
+    background-image: 
+      radial-gradient(ellipse at 20% 10%, rgba(139,69,19,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 90%, rgba(192,120,48,0.05) 0%, transparent 60%);
+  }
+
+  header {
+    background: var(--text);
+    color: #f5f0e8;
+    padding: 40px 24px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      45deg, transparent, transparent 40px, rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px
+    );
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    letter-spacing: 0.02em;
+    position: relative;
+  }
+  header p {
+    margin-top: 8px;
+    opacity: 0.65;
+    font-size: 0.9rem;
+    font-style: italic;
+    position: relative;
+  }
+
+  .controls {
+    max-width: 900px;
+    margin: 28px auto 0;
+    padding: 0 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .search-box {
+    flex: 1; min-width: 200px;
+    display: flex;
+    align-items: center;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    gap: 8px;
+  }
+  .search-box input {
+    border: none; background: none; outline: none;
+    font-family: inherit; font-size: 1rem;
+    color: var(--text); width: 100%;
+  }
+  .search-box input::placeholder { color: var(--muted); }
+  .search-icon { color: var(--muted); font-size: 1rem; }
+
+  .filter-btns {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .filter-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    font-family: inherit; font-size: 0.8rem;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .grid {
+    max-width: 900px;
+    margin: 20px auto 60px;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(44,24,16,0.06);
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(44,24,16,0.12);
+  }
+  .card-header {
+    background: var(--accent);
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-header h2 {
+    color: white;
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .card-header .num {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  .card-body { padding: 16px 18px; }
+
+  .question {
+    margin-bottom: 12px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .question-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    background: var(--card);
+    transition: background 0.15s;
+    user-select: none;
+  }
+  .question-header:hover { background: var(--tag-bg); }
+  .q-num {
+    flex-shrink: 0;
+    width: 24px; height: 24px;
+    background: var(--accent2);
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 600;
+    font-family: 'Playfair Display', serif;
+    margin-top: 1px;
+  }
+  .q-text {
+    flex: 1;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--text);
+    font-weight: 600;
+  }
+  .toggle-icon {
+    flex-shrink: 0;
+    color: var(--muted);
+    transition: transform 0.25s;
+    font-size: 0.8rem;
+    margin-top: 3px;
+  }
+  .question.open .toggle-icon { transform: rotate(180deg); }
+
+  .answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+  }
+  .question.open .answer { max-height: 700px; }
+  .answer-inner {
+    padding: 14px 14px 14px 48px;
+    background: var(--answer-bg);
+    border-top: 1px solid var(--answer-border);
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: #3d2415;
+  }
+  .answer-inner p { margin-bottom: 8px; }
+  .answer-inner p:last-child { margin-bottom: 0; }
+  .answer-inner strong { color: var(--accent); }
+
+  .tags {
+    display: flex; flex-wrap: wrap; gap: 5px;
+    margin-top: 14px; padding-top: 12px;
+    border-top: 1px dashed var(--border);
+  }
+  .tag {
+    background: var(--tag-bg);
+    color: var(--muted);
+    font-size: 0.72rem;
+    padding: 3px 9px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+
+  .hidden { display: none !important; }
+
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    font-style: italic;
+    padding: 60px 20px;
+    grid-column: 1 / -1;
+  }
+
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📚 Mahsulotlarni identifikasiyalash va qalbakilashtirish</h1>
+  <p>Identifikatsiya turlari, usullari, qalbakilashtirish, dori vositalari va parfyumeriya mahsulotlari</p>
+</header>
+
+<div class="controls">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Savol raqami yoki mavzu bo'yicha qidiring...">
+  </div>
+  <div class="filter-btns">
+    <button class="filter-btn active" onclick="filterTag('all', this)">Barchasi</button>
+    <button class="filter-btn" onclick="filterTag('kirish', this)">Kirish</button>
+    <button class="filter-btn" onclick="filterTag('identifikatsiya', this)">Identifikatsiya</button>
+    <button class="filter-btn" onclick="filterTag('usullar', this)">Usullar</button>
+    <button class="filter-btn" onclick="filterTag('qalbakilashtirish', this)">Qalbakilashtirish</button>
+    <button class="filter-btn" onclick="filterTag('dori', this)">Dori vositalari</button>
+    <button class="filter-btn" onclick="filterTag('huquqiy', this)">Huquqiy</button>
+    <button class="filter-btn" onclick="filterTag('parfyumeriya', this)">Parfyumeriya</button>
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const data = [
+  {
+    variant: 1,
+    tags: ["kirish", "identifikatsiya", "qalbakilashtirish"],
+    questions: [
+      {
+        q: "Mahsulotlarni identifikasiyalash va qalbakilashtirish fanining predmeti, maqsadi va vazifalari nimalardan iborat?",
+        a: "<strong>Fanning predmeti</strong> — mahsulotlarning sifat, xavfsizlik va haqiqiylik ko'rsatkichlarini o'rganish, ularni aniqlash usullarini ishlab chiqishdir. <strong>Maqsadi</strong> — iste'molchilarni qalbaki mahsulotlardan himoya qilish, bozorda haqiqiy mahsulot aylanishini ta'minlash. <strong>Vazifalari:</strong> identifikasion ko'rsatkichlarni aniqlash, qalbakilashtirish turlari va usullarini o'rganish, aniqlash metodlarini takomillashtirish, huquqiy himoyani ta'minlash. <strong>Asosiy tushunchalar:</strong> mahsulot, identifikatsiya (haqiqiylikni hujjatlarga muvofiqligini aniqlash), qalbakilashtirish (ataylab noto'g'ri ma'lumot kiritish yoki asl mahsulot o'rniga boshqa mahsulot taqdim etish)."
+      },
+      {
+        q: "Mahsulotlarni qalbakilashtirish tarixi va unga qarshi qo'llanilgan taqiqlar hamda choralar haqida nima bilasiz?",
+        a: "Qalbakilashtirish savdo-sotiq paydo bo'lgan davrlardan mavjud: qadimda tanga va metall qotishmalarini, vino, asal, unni qalbakilashtirish keng tarqalgan bo'lgan. O'rta asrlarda hunarmandchilik tamg'alarini taqlid qilish boshlandi, sanoat inqilobi davrida esa ommaviy ishlab chiqarish bilan uning ko'lami oshdi. <strong>Choralar:</strong> davlat farmonlari, savdo nazorati organlari, tamg'a va muhrlar tizimi, qalbakichilarga nisbatan jarima va musodara. Hozirda bu vazifani <strong>standartlashtirish, sertifikatlash va iste'molchilar huquqini himoya qilish</strong> tizimlari bajaradi."
+      }
+    ]
+  },
+  {
+    variant: 2,
+    tags: ["qalbakilashtirish", "huquqiy", "kirish"],
+    questions: [
+      {
+        q: "Hozirgi kunda O'zbekistonda va xorijiy mamlakatlarda mahsulotlarni qalbakilashtirish holati qanday?",
+        a: "Qalbakilashtirish global muammoga aylangan — ko'plab mamlakatlar bozorida dori vositalari, kosmetika, parfyumeriya, alkogol, oziq-ovqat va elektronika eng ko'p soxtalashtiriladigan tovar guruhlari hisoblanadi. <strong>O'zbekistonda</strong> iste'mol bozorini himoya qilish uchun \"Iste'molchilar huquqlarini himoya qilish\", standartlashtirish va sertifikatlashtirish to'g'risidagi normativ hujjatlar amal qiladi, bojxona organlari va \"Uzstandart\" agentligi import mahsulotlarini nazorat qiladi."
+      },
+      {
+        q: "Xorijda ishlab chiqarilgan qalbaki mahsulotlardan O'zbekiston bozorini himoya qilish bo'yicha qanday choralar ko'riladi?",
+        a: "<strong>Asosiy choralar:</strong> chegara-bojxona nazoratini kuchaytirish va kelib chiqish hujjatlarini tekshirish, chegara o'tkazish punktlarida ekspress-laboratoriya tahlillarini joriy etish, INTERPOL va Jahon bojxona tashkiloti kabi xalqaro tashkilotlar bilan hamkorlik, qadoqlash va markirovkaga (gologramma, QR-kod) qo'yiladigan talablarni qattiqlashtirish, shuningdek iste'molchilarni soxta mahsulot belgilari haqida xabardor qilish."
+      }
+    ]
+  },
+  {
+    variant: 3,
+    tags: ["identifikatsiya"],
+    questions: [
+      {
+        q: "Identifikatsiyaning asosiy turlari qanday va ular nimani aniqlaydi?",
+        a: "<strong>Assortiment identifikatsiyasi</strong> — mahsulot turkumi, nomi yoki navining hujjatlarga muvofiqligini aniqlaydi. <strong>Sifat identifikatsiyasi</strong> — sifat ko'rsatkichlarining normativ talablarga muvofiqligini, ya'ni sifat darajasini (standart, mod, brak) belgilaydi. <strong>Partiya identifikatsiyasi</strong> — ma'lum partiyaga tegishli mahsulotning o'sha partiya hujjatlariga (sertifikat, deklaratsiya) muvofiqligini tekshiradi. <strong>Mavqe (pozitsion) identifikatsiyasi</strong> — mahsulotning kelib chiqish joyini va ishlab chiqaruvchisini aniqlaydi."
+      },
+      {
+        q: "Identifikatsiya sifatni baholash, tasdiqlash va boshqarish jarayonida qanday o'rin tutadi va qanday funksiyalarni bajaradi?",
+        a: "Identifikatsiya — sifat boshqaruvi tizimining boshlang'ich bosqichi, chunki mahsulotning haqiqiyligi aniqlanmagunicha sifatini baholash ma'nosiz. Muvofiqlikni tasdiqlashda u mahsulotning normativ hujjatga mosligini tekshirishning birinchi qadami hisoblanadi. <strong>Funksiyalari:</strong> belgilovchi (turini aniqlash), boshqaruv (sifat darajasini belgilash), axborot (iste'molchiga to'g'ri ma'lumot berish) va himoya (bozorni qalbaki mahsulotdan saqlash). Shu sababli har bir mahsulot uchun barqaror, o'lchanadigan <strong>tayanch tavsiflarni</strong> asoslab olish zarur."
+      }
+    ]
+  },
+  {
+    variant: 4,
+    tags: ["identifikatsiya"],
+    questions: [
+      {
+        q: "Identifikatsiya ko'rsatkichlarining asosiy guruhlarini sanab, qisqacha izohlang.",
+        a: "<strong>Organoleptik ko'rsatkichlar</strong> — tashqi ko'rinish, rang, hid, ta'm, konsistensiya, shakl; sezgi organlari yordamida tezkor baholanadi. <strong>Fizik-kimyoviy ko'rsatkichlar</strong> — zichlik, namlik, kislotalilik, erish/qotish harorati, pH darajasi va boshqalar. <strong>Qo'llashlik (funksional) ko'rsatkichlari</strong> — mahsulotning o'z vazifasini bajarish qobiliyati. <strong>Sharoitga moslik ko'rsatkichi</strong> — identifikatsiyani laboratoriyada yoki oddiy sharoitda (dalada, do'konda) tezkor o'tkazish imkoniyati."
+      },
+      {
+        q: "Identifikatsiya ko'rsatkichlarining ishonchliligini ta'minlash uchun qanday me'yorlarga amal qilinadi?",
+        a: "<strong>Obyektivlik</strong> — natija tekshiruvchi shaxsga bog'liq bo'lmasligi kerak. <strong>Takrorlanuvchanlik</strong> — bir xil sharoitda qayta tekshirilganda bir xil natija berishi. <strong>Sezuvchanlik</strong> — kichik og'ishlarni ham aniqlay olishi. <strong>Barqarorlik</strong> — vaqt va tashqi ta'sirlarga chidamliligi. <strong>Iqtisodiy maqsadga muvofiqlik</strong> — tekshirish narxi va vaqti mahsulot qiymatiga mos bo'lishi. Shu mezonlar asosida tanlangan ko'rsatkichlar yakuniy natijaning to'g'ri va ishonchli bo'lishini ta'minlaydi."
+      }
+    ]
+  },
+  {
+    variant: 5,
+    tags: ["usullar", "identifikatsiya"],
+    questions: [
+      {
+        q: "Organoleptik identifikatsiya usulining afzalliklari, kamchiliklari va xilma-xilligi qanday?",
+        a: "<strong>Afzalliklari:</strong> tezkorlik, qo'shimcha xarajat va asbob talab qilmasligi, oddiy sharoitda qo'llanishi. <strong>Kamchiliklari:</strong> natijaning subyektivligi, tekshiruvchining tajribasiga bog'liqligi, kichik o'zgarishlarni aniqlay olmasligi. <strong>Xilma-xilligi:</strong> <strong>vizual</strong> (rang, shakl, sirt), <strong>olfaktor</strong> (hid), <strong>degustatsiya</strong> (ta'm), <strong>taktil</strong> (qattiqlik, g'adir-budurlik) va <strong>auditiv</strong> (tovush chiqarish) usullar."
+      },
+      {
+        q: "Instrumental (o'lchov asboblari yordamida) identifikatsiya usulining organoleptik usuldan farqi nimada?",
+        a: "Instrumental usul fizik-kimyoviy va maxsus asboblar yordamida mahsulotning aniq miqdoriy ko'rsatkichlarini (zichlik, harorat, konsentratsiya) o'lchaydi. <strong>Afzalliklari:</strong> natijaning obyektivligi, aniqligi va takrorlanuvchanligi, qiyosiy tahlil imkoniyati. <strong>Kamchiliklari:</strong> qimmat asbob-uskuna va malakali mutaxassis talab etishi, ko'p vaqt sarflanishi. Amaliyotda odatda avval organoleptik usul bilan tezkor baholash o'tkaziladi, shubha bo'lsa instrumental usul bilan chuqur tahlil amalga oshiriladi."
+      }
+    ]
+  },
+  {
+    variant: 6,
+    tags: ["usullar", "dori"],
+    questions: [
+      {
+        q: "Identifikatsiyaning zamonaviy fizik-kimyoviy usullariga qaysilar kiradi va ular nimaga asoslangan?",
+        a: "<strong>Xromatografik usul</strong> (HPLC, GC, TLC) — moddalarni harakatlanuvchi va statsionar fazalar orasidagi taqsimlanishiga ko'ra ajratadi, dori tarkibidagi aktiv moddalar va aralashmalarni aniqlashda qo'llaniladi. <strong>Spektrofotometrik usul</strong> (UV-Vis, IR) — moddaning nur yutish xususiyatiga asoslanadi; IR-spektroskopiya moddaning \"barmoq izi\" spektri orqali haqiqiyligini tasdiqlaydi."
+      },
+      {
+        q: "Atom-absorbsion va mass-spektrometrik usullar dori vositalarini identifikasiyalashda qanday qo'llaniladi?",
+        a: "<strong>Atom-absorbsion spektrometrik usul (AAS)</strong> — moddadagi metall elementlar, jumladan og'ir metallarning izlar miqdorini yuqori aniqlik bilan o'lchaydi, ruxsat etilgan me'yordan ortiqligini aniqlaydi. <strong>Mass-spektrometrik usul (MS)</strong> — moddalarni ionlashtirib, massa/zaryad nisbati orqali molekulyar massasini aniqlaydi, ko'pincha xromatografiya bilan birga (LC-MS, GC-MS) qo'llaniladi. Bu usullar soxta dorilarda faol moddaning yo'qligi yoki o'rniga boshqa modda qo'shilganini aniq belgilab beradi."
+      }
+    ]
+  },
+  {
+    variant: 7,
+    tags: ["qalbakilashtirish"],
+    questions: [
+      {
+        q: "Qalbakilashtirilgan, nuqsonli va o'rinbosar tovarlar o'rtasidagi farq nimada?",
+        a: "<strong>Qalbakilashtirilgan tovar</strong> — sotuvchi tomonidan ataylab, iste'molchini chalg'itish maqsadida haqiqiy mahsulot sifatida taqdim etilgan boshqa mahsulot. <strong>Nuqsonli tovar</strong> — ishlab chiqarish yoki saqlash jarayonida texnologik talablar buzilishi natijasida sifat ko'rsatkichlari og'ishgan, lekin aldash niyati bo'lmagan tovar. <strong>Tovar o'rinbosari</strong> — asl tovar o'rnida ishlatiladigan, lekin iste'molchiga ochiq ma'lumot berilgan qonuniy almashtiruvchi (masalan, generik dori). Asosiy farq — <strong>ataylab aldash niyatining mavjudligi</strong>."
+      },
+      {
+        q: "Tovarlar tavsifining o'zgarishiga bog'liq qalbakilashtirish turlari (assortiment, sifat, miqdor, narx, axborot) qanday?",
+        a: "<strong>Assortiment bo'yicha</strong> — bir tur mahsulot o'rniga arzonroq turdagi mahsulot taqdim etilishi. <strong>Sifat bo'yicha</strong> — tarkibga foydasiz yoki zararli komponentlar qo'shib, yuqori sifat sifatida taqdim etish. <strong>Miqdor bo'yicha</strong> — o'lchov yoki vaznni kamaytirib, hujjatdagi miqdordan kam berish. <strong>Narx bo'yicha</strong> — haqiqiy qiymatdan yuqori narx belgilash. <strong>Axborot bo'yicha</strong> — tarkibi, sanasi, mamlakati yoki sertifikati haqida noto'g'ri ma'lumot berish."
+      },
+      {
+        q: "Qalbakilashtirishning joyga bog'liqligi (texnologik va sotuvdan oldingi turlari) qanday farqlanadi?",
+        a: "<strong>Texnologik qalbakilashtirish</strong> — bevosita ishlab chiqarish jarayonida, zavod yoki sex sharoitida amalga oshiriladi (masalan, tarkibga arzon komponent qo'shish). <strong>Sotuvdan oldingi (pretreyd) qalbakilashtirish</strong> — mahsulot tayyor holda sotishga tayyorlanish bosqichida, ya'ni qadoqlash, markirovka, omborlashtirish yoki transportirovka davrida (masalan, etiketkani almashtirish, muddatini o'zgartirish) sodir bo'ladi."
+      }
+    ]
+  },
+  {
+    variant: 8,
+    tags: ["qalbakilashtirish", "dori"],
+    questions: [
+      {
+        q: "Har xil turdagi qalbakilashtirish uchun qanday vositalardan foydalaniladi?",
+        a: "<strong>Assortiment qalbakilashtirishda</strong> — tashqi ko'rinishi o'xshash, lekin tarkibi boshqa mahsulotlar ishlatiladi. <strong>Sifat qalbakilashtirishda</strong> — qo'shimcha moddalar, suyultiruvchilar, bo'yoqlar va ta'm kuchaytiruvchilar qo'llaniladi. <strong>Miqdor qalbakilashtirishda</strong> — noto'g'ri kalibrlangan o'lchov asboblari yoki haqiqiy hajmdan katta ko'rsatilgan qadoq ishlatiladi. <strong>Axborot qalbakilashtirishda</strong> — soxta etiketka, sertifikat, gologramma va shtrix-kodlardan foydalaniladi."
+      },
+      {
+        q: "Dori vositalarining o'rinbosarlari, ularni aniqlash usullari va qalbaki tovar chegarasi nimani anglatadi?",
+        a: "<strong>Dori o'rinbosarlari</strong> — faol moddasi bo'lmagan \"bo'sh\" tabletkalar (placebo), faol moddasi kam yoki boshqa arzon kimyoviy moddaga almashtirilgan tabletkalar, muddati o'tgan dorilarning qaytadan qadoqlanishi. <strong>Aniqlash usullari:</strong> organoleptik tekshirish, instrumental tahlil (xromatografiya, spektrofotometriya), hujjatlarni solishtirish, maxsus belgilarni (gologramma, QR-kod) tekshirish. <strong>Qalbaki tovar chegarasi</strong> — sifat ko'rsatkichlarining normativ chegaradan qancha chetga chiqishi mumkinligini belgilovchi me'yor; bu chegaradan oshish mahsulotni qalbaki deb topishga asos bo'ladi."
+      }
+    ]
+  },
+  {
+    variant: 9,
+    tags: ["qalbakilashtirish", "huquqiy"],
+    questions: [
+      {
+        q: "Qalbakilashtirish tayyorlovchilar va sotuvchilar uchun qanday oqibatlarga olib keladi?",
+        a: "<strong>Foydasi</strong> (qalbakichilar uchun) — past tannarx evaziga yuqori daromad, soliq va sertifikatlash xarajatlaridan qochish. <strong>Xavfi</strong> — jinoiy va ma'muriy javobgarlik, mol-mulkni musodara qilish, ruxsatnomalarni bekor qilish, obro'-e'tibor yo'qotish. <strong>Zarari</strong> — halol ishlab chiqaruvchilarning bozor ulushi va daromadi kamayishi, davlat byudjeti soliq tushumlarining pasayishi, mamlakat brendiga putur yetishi."
+      },
+      {
+        q: "Iste'molchilarning qalbaki dori sotib olishdagi yo'qotishlari va ularni bartaraf etish bo'yicha qanday choralar ko'riladi?",
+        a: "<strong>Moddiy yo'qotish</strong> — sifatsiz mahsulot uchun pul to'lash va davolanish samarasiz bo'lgani uchun qo'shimcha xarajat. <strong>Ma'naviy yo'qotish</strong> — kasallikning davom etishi yoki og'irlashishi, asoratlar, davlatga ishonchning pasayishi. Choralar ikki guruhga bo'linadi: <strong>ogohlantiruvchi (profilaktik)</strong> — sertifikatlash, bozor monitoringi, iste'molchilarni xabardor qilish, himoya texnologiyalarini joriy etish; va <strong>jazolovchi (repressiv)</strong> — jarima, litsenziyani bekor qilish, musodara, jinoiy javobgarlik."
+      }
+    ]
+  },
+  {
+    variant: 10,
+    tags: ["huquqiy", "dori"],
+    questions: [
+      {
+        q: "Qalbakilashtirishning oldini olish bo'yicha qanday huquqiy va me'yoriy hujjatlar mavjud?",
+        a: "<strong>Iste'molchilar huquqlarini himoya qilish to'g'risidagi qonun</strong> — sifatli mahsulot olish huquqini kafolatlaydi. <strong>Standartlashtirish va sertifikatlashtirish to'g'risidagi qonunlar</strong> — mahsulotning standartlarga muvofiqligini tasdiqlashni nazarda tutadi. <strong>Dori vositalari to'g'risidagi qonunchilik</strong> — ro'yxatdan o'tkazish va sifat nazorati talablarini belgilaydi. <strong>Bojxona kodeksi</strong> — chegaradan o'tkaziladigan mahsulotlarni nazorat qiladi. <strong>Jinoyat va ma'muriy kodekslar</strong> — qalbakilashtirish uchun jazo choralarini belgilaydi."
+      },
+      {
+        q: "Iste'molchilar uchun axborot standartlari va qalbaki dorilarning oldini olish bo'yicha ma'muriy-ijtimoiy choralar qanday?",
+        a: "<strong>Axborot standartlari</strong> etiketkada ko'rsatilishi shart bo'lgan ma'lumotlarni belgilaydi: nomi, tarkibi, ishlab chiqaruvchi, ishlab chiqarilgan/yaroqlilik muddati, saqlash shartlari, sertifikat raqami. <strong>Ma'muriy choralar</strong> — dorixonalarni litsenziyalash va nazorat qilish, import-eksportni ro'yxatga olish, raqamli izlash tizimlarini joriy etish. <strong>Ijtimoiy choralar</strong> — aholini soxta dorilarni tanish bo'yicha targ'ib qilish, \"issiq liniya\"lar orqali shikoyat qabul qilish, mutaxassislarni o'qitish."
+      }
+    ]
+  },
+  {
+    variant: 11,
+    tags: ["dori", "usullar"],
+    questions: [
+      {
+        q: "Dori vositalarini sensorli (organoleptik) tahlil qilish orqali chinligini aniqlash qanday amalga oshiriladi?",
+        a: "Sensorli tahlil — dori haqiqiyligini tekshirishning birinchi va tezkor bosqichi: <strong>tashqi ko'rinish</strong> — tabletka, kapsula yoki suyuqlikning shakli, o'lchami, sirti; <strong>rangi</strong> — bir xillik va reglamentga muvofiqligi; <strong>hidi</strong> — o'ziga xos yoki begona hid mavjudligi; <strong>ta'mi va konsistensiyasi</strong> — eruvchanligi, qattiqligi, yopishqoqligi. Bu ko'rsatkichlardagi har qanday og'ish soxtalik yoki sifat buzilishidan dalolat berishi mumkin."
+      },
+      {
+        q: "Dori vositalarining xom-ashyolari qanday guruhlarga bo'linadi?",
+        a: "<strong>Guruhlar</strong> — kelib chiqishiga ko'ra o'simlik, hayvon, mineral va sintetik kelib chiqishga ega xom-ashyolar. <strong>Kichik guruhlar</strong> — kimyoviy tarkibi yoki qo'llanish sohasiga ko'ra ajratiladigan toifalar (masalan, alkaloidli, glikozidli, efir moylari saqlovchi turlar). <strong>Turlar</strong> — aniq botanik yoki kimyoviy nomi bilan ataladigan konkret xom-ashyo. <strong>O'ta qalbakilashtirilgan kichik guruhlar va turlar</strong> — bozorda eng ko'p soxtalashtirilishga uchragan, qiymati yuqori yoki tanqis xom-ashyolar."
+      }
+    ]
+  },
+  {
+    variant: 12,
+    tags: ["dori", "usullar"],
+    questions: [
+      {
+        q: "Dori vositalari xom-ashyosini identifikasiyalashda 'umumiy ko'rsatkichlar' nimani anglatadi?",
+        a: "<strong>Umumiy ko'rsatkichlar</strong> — bir jinsli guruhdagi barcha xom-ashyo vakillariga xos bo'lgan, ularning umumiy holatini baholashga xizmat qiladigan tashqi va fizik-kimyoviy belgilardir: masalan, <strong>namlik darajasi</strong>, <strong>kul miqdori</strong> va <strong>mexanik aralashmalar darajasi</strong>. Bu ko'rsatkichlar xom-ashyoning saqlanish sharoitiga muvofiqligini va umumiy sifat darajasini aniqlash imkonini beradi, lekin u qaysi aniq turga tegishli ekanligini ko'rsatmaydi."
+      },
+      {
+        q: "'Maxsus ko'rsatkichlar' umumiy ko'rsatkichlardan nimasi bilan farq qiladi va qanday vazifani bajaradi?",
+        a: "<strong>Maxsus ko'rsatkichlar</strong> — faqat ma'lum bir turga xos bo'lgan, uni boshqa o'xshash turlardan ajratib turuvchi o'ziga xos belgilardir: masalan, <strong>faol moddaning miqdoriy tarkibi</strong> yoki <strong>o'ziga xos sifat reaksiyalari</strong>. Umumiy ko'rsatkichlar guruhning sifat holatini ko'rsatsa, maxsus ko'rsatkichlar aynan shu xom-ashyo qaysi botanik yoki kimyoviy turga mansubligini tasdiqlash yoki rad etish vazifasini bajaradi."
+      }
+    ]
+  },
+  {
+    variant: 13,
+    tags: ["dori", "usullar", "qalbakilashtirish"],
+    questions: [
+      {
+        q: "Dori vositalarini axborot vositalari va ishlab chiqarish tamg'asi orqali qalbakilashtirish qanday amalga oshiriladi?",
+        a: "<strong>Axborot vositalari orqali</strong> — soxta yoki noto'g'ri etiketka, qo'llanma, sertifikat, shtrix-kod yoki QR-kod yordamida iste'molchi chalg'itiladi. <strong>Ishlab chiqarish tamg'asi orqali</strong> — mashhur farmatsevtika kompaniyasining logotipi, nomi va qadoq dizayni ruxsatsiz nusxalanadi. <strong>Moddiy-texnika vositalari orqali</strong> — qadoqlash materiallari, idishlar, blisterlar va flakonlar asl mahsulotnikiga o'xshatib tayyorlanadi."
+      },
+      {
+        q: "Dori qalbakilashtirishni aniqlashning fizik, kimyoviy, fizik-kimyoviy, tovarshunoslik-texnologiya va ekspress usullari qanday farqlanadi?",
+        a: "<strong>Fizik usullar</strong> — vazn, hajm, zichlik, qattiqlik kabi xususiyatlarni o'lchash. <strong>Kimyoviy usullar</strong> — sifat reaksiyalari (rang o'zgarishi, cho'kma hosil bo'lishi) orqali moddani aniqlash. <strong>Fizik-kimyoviy usullar</strong> — xromatografiya, spektrofotometriya, titrlash kabi murakkab, aniq natija beruvchi usullar. <strong>Tovarshunoslik-texnologiya usullari</strong> — ishlab chiqarish texnologiyasiga xos belgilar (presslash izlari, bosma sifati) tahlili. <strong>Ekspress usullar</strong> — test-tasmalar, portativ spektrometrlar va QR-kodni tekshirish orqali joyida tezkor natija olish."
+      }
+    ]
+  },
+  {
+    variant: 14,
+    tags: ["dori", "identifikatsiya"],
+    questions: [
+      {
+        q: "Dori vositalarini identifikasiyalashda 'mahsulot to'g'risidagi axborot vositalari' qanday ma'lumot beradi?",
+        a: "Bunga dori vositasining <strong>etiketkasi</strong>, qadoq qutisidagi yozuvlar, ichki qo'llanma (instruksiya), <strong>sifat sertifikati</strong>, muvofiqlik deklaratsiyasi va ro'yxatdan o'tish guvohnomasi kiradi. Bu vositalar orqali mahsulotning nomi, tarkibi, ishlab chiqaruvchisi, partiya raqami va yaroqlilik muddati haqida ma'lumot olinadi va hujjatlar bilan solishtiriladi — bu identifikatsiyaning birinchi va eng arzon bosqichidir."
+      },
+      {
+        q: "'Ishlab chiqarish tamg'asi' (brend belgilari) dori vositasining haqiqiyligini aniqlashda qanday ahamiyatga ega?",
+        a: "Bunga kompaniya <strong>logotipi</strong>, savdo markasi, fabrika belgisi, <strong>gologramma</strong>, suv belgisi, maxsus shrift va dizayn elementlari kiradi. Bu belgilar asl mahsulotni soxtadan ajratishda muhim, chunki ularni aniq nusxalash texnik jihatdan qiyin va qimmat. Gologramma yoki suv belgisining yo'qligi yoxud sifatsizligi — mahsulotning qalbaki bo'lishi mumkinligidan dalolat beradi."
+      },
+      {
+        q: "Dori vositalarini identifikasiyalashda qo'llaniladigan 'moddiy-texnika vositalari' qanday asbob va materiallarni o'z ichiga oladi?",
+        a: "Bularga bevosita tekshirish uchun ishlatiladigan asboblar kiradi: <strong>lupalar</strong>, <strong>UV-lampalar</strong> (gologramma va suv belgilarini tekshirish uchun), <strong>portativ spektrometrlar</strong>, test-tasmalar, shtrix-kod va QR-kod skanerlari, shuningdek laboratoriya asbob-uskunalari (xromatograflar, spektrofotometrlar). Axborot vositalari, brend belgilari va moddiy-texnika vositalari birgalikda qo'llanilganda dori haqiqiyligi haqida to'liq xulosa chiqarish mumkin bo'ladi."
+      }
+    ]
+  },
+  {
+    variant: 15,
+    tags: ["parfyumeriya", "identifikatsiya"],
+    questions: [
+      {
+        q: "Parfyumeriya va kosmetika mahsulotlari sifatini va partiyasini identifikasiyalash qanday amalga oshiriladi?",
+        a: "<strong>Sifat identifikatsiyasi</strong> — hidning barqarorligi va sifati (boshlang'ich, asosiy va qoldiq notalar), rangi va shaffofligi, konsistensiyasi, qadoqning germetikligi, hamda fizik-kimyoviy ko'rsatkichlar (zichlik, spirt miqdori, pH) bo'yicha baholanadi. <strong>Partiya identifikatsiyasi</strong> — har bir partiyaga berilgan noyob <strong>partiya (seriya) raqami</strong>, ishlab chiqarilgan va yaroqlilik muddati flakon tubida yoki qadoqda ko'rsatiladi va ishlab chiqaruvchi hujjatlari bilan solishtiriladi."
+      },
+      {
+        q: "Parfyumeriya mahsulotlari assortimentini identifikasiyalash va ularning qadoqlanish-markirovka talablari qanday?",
+        a: "<strong>Assortiment identifikatsiyasi</strong> — mahsulotning parfyumeriya turkumiga (parfum, eau de parfum, eau de toilette, eau de cologne, dezodorant) mosligini va shu turkum uchun belgilangan aromatik moddalar konsentratsiyasi me'yorlariga muvofiqligini aniqlaydi. <strong>Qadoqlanish va markirovka</strong> — flakon va quti sifati, bosma matnning aniqligi, brend logotipining to'g'riligi, shtrix-kod va seriya raqami, tarkib (ingredients), ishlab chiqaruvchi manzili va hajmi (ml) kabi majburiy ma'lumotlarning to'liqligi tekshiriladi."
+      },
+      {
+        q: "Parfyumeriya mahsulotlari aromatik moddalar konsentratsiyasiga ko'ra qanday turlarga bo'linadi va qalbaki parfyumeriya qanday belgilari bilan aniqlanadi?",
+        a: "Konsentratsiyaga ko'ra: <strong>parfum (parfum extrait)</strong> — 20-30%, eng yuqori va eng uzoq davom etuvchi hid; <strong>eau de parfum (EDP)</strong> — 15-20%; <strong>eau de toilette (EDT)</strong> — 5-15%; <strong>eau de cologne (EDC)</strong> — 2-5%. <strong>Qalbaki parfyumeriya belgilari:</strong> aromatik moddalar konsentratsiyasi sun'iy ravishda kamaytirilgan, spirt asosi sifatsiz, hidning davomliligi va bir xilligi past, qadoq sifati esa asl mahsulotdan sezilarli farq qiladi."
+      }
+    ]
+  }
+];
+
+function renderCards(list) {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty">Hech narsa topilmadi 🔍</div>';
+    return;
+  }
+  list.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.tags = item.tags.join(',');
+    card.dataset.variant = item.variant;
+    card.innerHTML = `
+      <div class="card-header">
+        <h2>📋 ${item.variant}-SAVOL</h2>
+        <span class="num">${item.questions.length} qism</span>
+      </div>
+      <div class="card-body">
+        ${item.questions.map((q, i) => `
+          <div class="question" id="q-${item.variant}-${i}">
+            <div class="question-header" onclick="toggle('q-${item.variant}-${i}')">
+              <span class="q-num">${i+1}</span>
+              <span class="q-text">${q.q}</span>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="answer">
+              <div class="answer-inner"><p>${q.a}</p></div>
+            </div>
+          </div>
+        `).join('')}
+        <div class="tags">
+          ${item.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function toggle(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+let currentTag = 'all';
+
+function filterTag(tag, btn) {
+  currentTag = tag;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = data;
+  if (currentTag !== 'all') {
+    filtered = filtered.filter(item => item.tags.includes(currentTag));
+  }
+  if (search) {
+    filtered = filtered.filter(item =>
+      item.variant.toString().includes(search) ||
+      item.questions.some(q => q.q.toLowerCase().includes(search) || q.a.toLowerCase().includes(search)) ||
+      item.tags.some(t => t.includes(search))
+    );
+  }
+  renderCards(filtered);
+}
+
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+renderCards(data);
+</script>
+</body>
+</html>
